@@ -1,45 +1,654 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>테스트 웹 페이지</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 { color: #2d3436; }
-        p { color: #636e72; }
-        .btn {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 10px 20px;
-            background-color: #0984e3;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스탬프투어 결과 보고</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.07);
+    --shadow-hover: 0 12px 40px rgba(0,0,0,0.13);
+    --blue: #2563eb;
+    --blue-tint: #eff6ff;
+    --teal: #0891b2;
+    --teal-tint: #ecfeff;
+    --green: #059669;
+    --green-tint: #ecfdf5;
+    --amber: #d97706;
+    --amber-tint: #fffbeb;
+    --violet: #7c3aed;
+    --violet-tint: #f5f3ff;
+    --rose: #e11d48;
+    --rose-tint: #fff1f2;
+    --text: #0f172a;
+    --text-muted: #64748b;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    text-align: center;
+    padding: 64px 24px 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    display: inline-block;
+    background: var(--blue-tint);
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 999px;
+    border: 1.5px solid #bfdbfe;
+    margin-bottom: 20px;
+  }
+  .site-header h1 {
+    font-size: clamp(30px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .site-header h1 span { color: var(--blue); }
+  .site-header p {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 400;
+    max-width: 520px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+  .header-divider {
+    width: 60px;
+    height: 5px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue), var(--teal));
+    margin: 0 auto 56px;
+  }
+
+  /* ── UPLOAD SCREEN ── */
+  #upload-screen {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .upload-zone {
+    background: var(--card);
+    border: 2.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 56px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--blue);
+    background: var(--blue-tint);
+    box-shadow: 0 0 0 4px #bfdbfe80;
+    transform: translateY(-2px);
+  }
+  .upload-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--blue-tint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .upload-icon svg { width: 30px; height: 30px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .upload-zone h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .upload-zone p { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
+  .upload-note { font-size: 12px; color: #94a3b8; margin-top: 16px !important; }
+  .btn-upload {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .btn-upload:hover { background: #1d4ed8; transform: translateY(-1px); }
+  #file-input { display: none; }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display: none; padding: 0 24px; max-width: 1200px; margin: 0 auto; }
+
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .live-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--green-tint);
+    border: 1.5px solid #a7f3d0;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .live-dot {
+    width: 9px; height: 9px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.75); }
+  }
+  .btn-reset {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--rose); color: var(--rose); }
+
+  /* ── KPI GRID ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 28px 28px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 5px solid var(--blue);
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .kpi-card.teal { border-left-color: var(--teal); }
+  .kpi-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .kpi-icon svg { width: 26px; height: 26px; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .kpi-icon.blue { background: var(--blue-tint); }
+  .kpi-icon.blue svg { stroke: var(--blue); }
+  .kpi-icon.teal { background: var(--teal-tint); }
+  .kpi-icon.teal svg { stroke: var(--teal); }
+  .kpi-body { flex: 1; }
+  .kpi-label { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .kpi-value { font-size: 30px; font-weight: 800; color: var(--text); line-height: 1; }
+  .kpi-value.blue { color: var(--blue); }
+  .kpi-value.teal { color: var(--teal); }
+
+  /* ── CARDS ── */
+  .chart-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .chart-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .chart-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-card .chart-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .row2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .row2 .chart-card { margin-bottom: 0; }
+
+  .row1-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .row1-grid .chart-card { margin-bottom: 0; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate { animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .row2 { grid-template-columns: 1fr; }
+    .row1-grid { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
-    <div class="card">
-        <h1>👋 반가워요!</h1>
-        <p>이 페이지는 깃허브 테스트용으로 만들어졌습니다.</p>
-        <p>파일이 성공적으로 올라갔네요!</p>
-        <a href="#" class="btn" onclick="alert('작동 확인!')">버튼 클릭 테스트</a>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="eyebrow">📍 무릉이를 찾아라</div>
+  <h1>스탬프투어 <span>Performance</span><br>결과 보고</h1>
+  <p>스탬프 인증 데이터를 업로드하면 시각화 대시보드가 자동으로 생성됩니다.</p>
+  <div class="header-divider"></div>
+</header>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="upload-zone" id="drop-zone">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     </div>
+    <h3>JSON 파일을 업로드하세요</h3>
+    <p>세 개의 JSON 파일을 한 번에 선택하거나<br>이 영역으로 드래그&드롭하세요.</p>
+    <button class="btn-upload" onclick="document.getElementById('file-input').click()">파일 선택</button>
+    <input type="file" id="file-input" accept=".json" multiple>
+    <p class="upload-note">1. 전체 스탬프 인증 &nbsp;·&nbsp; 2. 선물신청자 &nbsp;·&nbsp; 3. 장소별 인증수·평점·리뷰</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-topbar">
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      <span id="record-pill">데이터 로드 완료</span>
+    </div>
+    <button class="btn-reset" onclick="resetDashboard()">↩ 초기화</button>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid">
+    <div class="kpi-card" id="kpi-stamps">
+      <div class="kpi-icon blue">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">총 발행 스탬프 개수</div>
+        <div class="kpi-value blue" id="kpi-val-stamps">—</div>
+      </div>
+    </div>
+    <div class="kpi-card teal" id="kpi-gift">
+      <div class="kpi-icon teal">
+        <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">선물신청자 수</div>
+        <div class="kpi-value teal" id="kpi-val-gift">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 1: timeseries + donut -->
+  <div class="row1-grid">
+    <div class="chart-card" id="card-timeseries">
+      <h3>시간대별 스탬프 발행 현황</h3>
+      <div class="chart-sub">Hourly 발행 스탬프 (스플라인 에어리어)</div>
+      <div id="chart-timeseries" style="height:300px;"></div>
+    </div>
+    <div class="chart-card" id="card-segment">
+      <h3>등급별 선물 신청자 분포</h3>
+      <div class="chart-sub">선물신청자 세그먼트 도넛</div>
+      <div id="chart-segment" style="height:300px;"></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: 3 bar charts -->
+  <div class="row2">
+    <div class="chart-card" id="card-bar-count">
+      <h3>장소별 인증수</h3>
+      <div class="chart-sub">총 인증 스탬프</div>
+      <div id="chart-bar-count" style="height:320px;"></div>
+    </div>
+    <div class="chart-card" id="card-bar-rating">
+      <h3>장소별 평점</h3>
+      <div class="chart-sub">사용자 평점</div>
+      <div id="chart-bar-rating" style="height:320px;"></div>
+    </div>
+    <div class="chart-card" id="card-bar-review">
+      <h3>장소별 리뷰 수</h3>
+      <div class="chart-sub">리뷰 개수</div>
+      <div id="chart-bar-review" style="height:320px;"></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: gift donut -->
+  <div class="chart-card" id="card-gift-donut">
+    <h3>등급별 선물 신청자 수 및 비율</h3>
+    <div class="chart-sub">무릉이 등급별 신청자 현황</div>
+    <div id="chart-gift-donut" style="height:380px;"></div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let DATA = { stamps: null, gifts: null, places: null };
+
+// ── File Input ──
+const fileInput = document.getElementById('file-input');
+const dropZone  = document.getElementById('drop-zone');
+
+fileInput.addEventListener('change', e => handleFiles([...e.target.files]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFiles([...e.dataTransfer.files]);
+});
+
+function handleFiles(files) {
+  const readers = files.map(f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => {
+      try { res({ name: f.name, data: JSON.parse(e.target.result) }); }
+      catch(err) { rej('JSON 파싱 오류: ' + f.name); }
+    };
+    r.onerror = () => rej('읽기 오류: ' + f.name);
+    r.readAsText(f);
+  }));
+
+  Promise.all(readers).then(results => {
+    results.forEach(({ name, data }) => {
+      const n = name.toLowerCase();
+      if (n.includes('장소') || n.includes('place') || n.includes('인증수') || n.includes('평점')) DATA.places = data;
+      else if (n.includes('선물') || n.includes('gift')) DATA.gifts = data;
+      else DATA.stamps = data;
+    });
+    if (!DATA.stamps && !DATA.gifts && !DATA.places) {
+      DATA.stamps = results[0]?.data || null;
+      DATA.gifts  = results[1]?.data || null;
+      DATA.places = results[2]?.data || null;
+    }
+    showDashboard();
+  }).catch(err => alert(err));
+}
+
+// ── Show Dashboard ──
+function showDashboard() {
+  document.getElementById('upload-screen').style.display = 'none';
+  const dash = document.getElementById('dashboard');
+  dash.style.display = 'block';
+
+  const total = (DATA.stamps?.length || 0);
+  const gifts  = (DATA.gifts?.length || 0);
+  document.getElementById('record-pill').textContent = `총 ${total + gifts} 건 레코드 로드됨`;
+  document.getElementById('kpi-val-stamps').textContent = total.toLocaleString();
+  document.getElementById('kpi-val-gift').textContent   = gifts.toLocaleString();
+
+  renderAll();
+  animateCards();
+}
+
+function resetDashboard() {
+  DATA = { stamps: null, gifts: null, places: null };
+  document.getElementById('upload-screen').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  fileInput.value = '';
+  // reset animation states
+  document.querySelectorAll('.kpi-card, .chart-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.classList.remove('animate');
+  });
+}
+
+// ── Animations ──
+function animateCards() {
+  const els = document.querySelectorAll('.kpi-card, .chart-card');
+  els.forEach((el, i) => {
+    el.style.animationDelay = `${i * 80}ms`;
+    el.classList.add('animate');
+  });
+}
+
+// ── Chart Defaults ──
+const FONT = { family: 'Poppins, sans-serif', color: '#64748b' };
+const LAYOUT_BASE = {
+  paper_bgcolor: 'transparent',
+  plot_bgcolor:  'transparent',
+  font: FONT,
+  margin: { t: 10, r: 16, b: 40, l: 10 },
+  xaxis: { gridcolor: '#e2e8f0', zerolinecolor: '#e2e8f0' },
+  yaxis: { gridcolor: '#e2e8f0', zerolinecolor: '#e2e8f0' },
+};
+const CFG = { displayModeBar: false, responsive: true };
+
+// ── Render All ──
+function renderAll() {
+  renderTimeseries();
+  renderSegmentDonut();
+  renderBarCount();
+  renderBarRating();
+  renderBarReview();
+  renderGiftDonut();
+}
+
+// 1. Timeseries
+function renderTimeseries() {
+  if (!DATA.stamps) return;
+  const hourMap = {};
+  DATA.stamps.forEach(d => {
+    const raw = d['스탬프 인증 시간'] || d['인증 시간'] || '';
+    const match = raw.match(/(\d{2}):/);
+    if (!match) return;
+    const h = match[1] + ':00';
+    hourMap[h] = (hourMap[h] || 0) + 1;
+  });
+  const hours = Object.keys(hourMap).sort();
+  const vals  = hours.map(h => hourMap[h]);
+
+  Plotly.newPlot('chart-timeseries', [{
+    x: hours, y: vals,
+    type: 'scatter', mode: 'lines',
+    line: { color: '#2563eb', width: 3, shape: 'spline', smoothing: 1.3 },
+    fill: 'tozeroy',
+    fillcolor: 'rgba(37,99,235,0.10)',
+    name: '발행 스탬프',
+    hovertemplate: '%{x}<br>%{y}건<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    xaxis: { ...LAYOUT_BASE.xaxis, title: { text: '시간', font: FONT } },
+    yaxis: { ...LAYOUT_BASE.yaxis, title: { text: '건수', font: FONT } },
+  }, CFG);
+}
+
+// 2. Segment Donut (stamp hourly distribution by am/pm/evening)
+function renderSegmentDonut() {
+  if (!DATA.stamps) return;
+  const seg = { '오전 (0-11시)': 0, '오후 (12-17시)': 0, '저녁 (18-23시)': 0 };
+  DATA.stamps.forEach(d => {
+    const raw = d['스탬프 인증 시간'] || d['인증 시간'] || '';
+    const m = raw.match(/(\d{2}):/);
+    if (!m) return;
+    const h = parseInt(m[1]);
+    if (h < 12) seg['오전 (0-11시)']++;
+    else if (h < 18) seg['오후 (12-17시)']++;
+    else seg['저녁 (18-23시)']++;
+  });
+
+  Plotly.newPlot('chart-segment', [{
+    labels: Object.keys(seg),
+    values: Object.values(seg),
+    type: 'pie',
+    hole: 0.58,
+    marker: { colors: ['#2563eb', '#0891b2', '#7c3aed'] },
+    textinfo: 'label+percent',
+    textfont: { family: 'Poppins', size: 11 },
+    hovertemplate: '%{label}<br>%{value}건 (%{percent})<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    margin: { t: 10, r: 10, b: 10, l: 10 },
+    legend: { font: FONT, orientation: 'h', y: -0.15 },
+    showlegend: true,
+  }, CFG);
+}
+
+// 3. Bar: 인증수 (horizontal, reversed axis)
+function renderBarCount() {
+  if (!DATA.places) return;
+  const d = DATA.places;
+  const labels = d.map(p => shortLabel(p['스탬프 장소'] || p['장소']));
+  const vals   = d.map(p => Number(p['총 인증 스탬프'] || p['인증수'] || 0));
+
+  Plotly.newPlot('chart-bar-count', [{
+    y: labels, x: vals,
+    type: 'bar', orientation: 'h',
+    marker: {
+      color: vals.map((v, i) => `rgba(37,99,235,${0.55 + 0.09 * i})`),
+    },
+    text: vals.map(v => v.toString()),
+    textposition: 'auto',
+    hovertemplate: '%{y}<br>%{x}건<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    xaxis: { ...LAYOUT_BASE.xaxis, autorange: 'reversed' },
+    yaxis: { ...LAYOUT_BASE.yaxis, automargin: true },
+    margin: { t: 10, r: 16, b: 36, l: 10 },
+  }, CFG);
+}
+
+// 4. Bar: 평점
+function renderBarRating() {
+  if (!DATA.places) return;
+  const d = DATA.places;
+  const labels = d.map(p => shortLabel(p['스탬프 장소'] || p['장소']));
+  const vals   = d.map(p => Number(p['평점'] || 0));
+
+  Plotly.newPlot('chart-bar-rating', [{
+    y: labels, x: vals,
+    type: 'bar', orientation: 'h',
+    marker: {
+      color: vals.map((v, i) => `rgba(8,145,178,${v > 0 ? 0.6 + 0.08 * i : 0.2})`),
+    },
+    text: vals.map(v => v > 0 ? v.toString() : '—'),
+    textposition: 'auto',
+    hovertemplate: '%{y}<br>평점: %{x}<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    xaxis: { ...LAYOUT_BASE.xaxis, range: [0, 6] },
+    yaxis: { ...LAYOUT_BASE.yaxis, automargin: true },
+    margin: { t: 10, r: 16, b: 36, l: 10 },
+  }, CFG);
+}
+
+// 5. Bar: 리뷰수
+function renderBarReview() {
+  if (!DATA.places) return;
+  const d = DATA.places;
+  const labels = d.map(p => shortLabel(p['스탬프 장소'] || p['장소']));
+  const vals   = d.map(p => Number(p['리뷰 개수'] || p['리뷰개수'] || 0));
+
+  Plotly.newPlot('chart-bar-review', [{
+    y: labels, x: vals,
+    type: 'bar', orientation: 'h',
+    marker: {
+      color: vals.map((v, i) => `rgba(37,99,235,${0.4 + 0.12 * i})`),
+    },
+    text: vals.map(v => v.toString()),
+    textposition: 'auto',
+    hovertemplate: '%{y}<br>리뷰: %{x}개<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    xaxis: { ...LAYOUT_BASE.xaxis },
+    yaxis: { ...LAYOUT_BASE.yaxis, automargin: true },
+    margin: { t: 10, r: 16, b: 36, l: 10 },
+  }, CFG);
+}
+
+// 6. Gift donut
+function renderGiftDonut() {
+  if (!DATA.gifts) return;
+  const gradeMap = {};
+  DATA.gifts.forEach(d => {
+    const g = d['등급'] || '미분류';
+    gradeMap[g] = (gradeMap[g] || 0) + 1;
+  });
+  const labels = Object.keys(gradeMap).sort();
+  const vals   = labels.map(l => gradeMap[l]);
+  const palette = ['#2563eb','#0891b2','#059669','#d97706','#7c3aed','#e11d48'];
+
+  Plotly.newPlot('chart-gift-donut', [{
+    labels, values: vals,
+    type: 'pie', hole: 0.58,
+    marker: { colors: palette.slice(0, labels.length) },
+    textinfo: 'label+value+percent',
+    textfont: { family: 'Poppins', size: 12 },
+    hovertemplate: '%{label}<br>%{value}명 (%{percent})<extra></extra>'
+  }], {
+    ...LAYOUT_BASE,
+    margin: { t: 20, r: 20, b: 20, l: 20 },
+    legend: {
+      font: { ...FONT, size: 13 },
+      orientation: 'v',
+      x: 1, y: 0.5,
+    },
+    showlegend: true,
+    height: 380,
+  }, CFG);
+}
+
+// Helper: shorten label
+function shortLabel(str) {
+  if (!str) return '';
+  return str.length > 20 ? str.slice(0, 20) + '…' : str;
+}
+</script>
 </body>
 </html>
